@@ -1,0 +1,9 @@
+[submodule "modules/PDCurses"]
+	path = modules/PDCurses
+	url = https://github.com/wmcbrine/PDCurses.git
+[submodule "modules/picocalc-text-starter"]
+	path = modules/picocalc-text-starter
+	url = https://github.com/BlairLeduc/picocalc-text-starter.git
+[submodule "modules/empire"]
+	path = modules/empire
+	url = https://github.com/DigitalMars/Empire-for-VMS.git

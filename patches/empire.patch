@@ -1,0 +1,142 @@
+--- a/empire/main.c
++++ b/empire/main.c
+@@ -2,94 +2,36 @@
+ 
+ /*
+  *    Copyright (C) 1987, 1988 Chuck Simmons
+- * 
++ *
+  * See the file COPYING, distributed with empire, for restriction
+  * and warranty information.
+  */
+ 
+ /*
+-main.c -- parse command line for empire
++main.c -- entry point for empire
+ 
+-options:
+-
+-    -w water: percentage of map that is water.  Must be in the range
+-              10..90.  Default is 70.
+-      
+-    -s smooth: amount of smoothing performed to generate map.  Must
+-       be a nonnegative integer.  Default is 5.
+-       
+-    -d delay:  number of milliseconds to delay between output.
+-               default is 2000 (2 seconds).
+-
+-    -S saveinterval: sets turn interval between saves.
+-       default is 10
++PicoCalc port: there is no argv on a microcontroller, and the Pico SDK's
++C library doesn't provide getopt(), so the original -w/-s/-d/-S command
++line option parsing has been replaced with the same fixed defaults the
++original used when no flags were given at all. main() has also been
++renamed to empire_main() so a hardware-specific main.c elsewhere in the
++project can call into it after doing PicoCalc hardware setup.
+ */
+ 
+-#include <stdio.h>
+ #include "empire.h"
+ #include "extern.h"
+ 
+-#define OPTFLAGS "w:s:d:S:"
+-
+-main (argc, argv)
+-int argc;
+-char *argv[];
++int
++empire_main (int argc, char *argv[])
+ {
+-int c;
+-extern char *optarg;
+-extern int optind;
+-extern int opterr;      /* set to 1 to suppress error msg */
+-int errflg = 0;
+ int wflg, sflg, dflg, Sflg;
+ int land;
+-
+-wflg = 70; /* set defaults */
++
++wflg = 70; /* defaults -- same values the original -w/-s/-d/-S flags defaulted to */
+ sflg = 5;
+ dflg = 2000;
+ Sflg = 10;
+ 
+-/*
+- * extract command line options
+- */
+-
+-while ((c = getopt (argc, argv, OPTFLAGS)) != EOF) {
+-switch (c) {
+-case 'w':
+-wflg = atoi (optarg);
+-break;
+-case 's':
+-sflg = atoi (optarg);
+-break;
+-case 'd':
+-dflg = atoi (optarg);
+-break;
+-case 'S':
+-Sflg = atoi (optarg);
+-break;
+-case '?': /* illegal option? */
+-errflg++;
+-break;
+-}
+-}
+-if (errflg || (argc-optind) != 0) {
+-(void) printf ("empire: usage: empire [-w water] [-s smooth] [-d delay]\n");
+-exit (1);
+-}
+-
+-if (wflg < 10 || wflg > 90) {
+-(void) printf ("empire: -w argument must be in the range 0..90.\n");
+-exit (1);
+-}
+-if (sflg < 0) {
+-(void) printf ("empire: -s argument must be greater or equal to zero.\n");
+-exit (1);
+-}
+-
+-if (dflg < 0 || dflg > 30000) {
+-(void) printf ("empire: -d argument must be in the range 0..30000.\n");
+-exit (1);
+-}
+-
+ SMOOTH = sflg;
+ WATER_RATIO = wflg;
+ delay_time = dflg;
+--- a/empire/game.c
++++ b/empire/game.c
+@@ -650,7 +650,7 @@
+ 
+ void inconsistent () {
+ (void) printf ("empsave.dat is inconsistent.  Please remove it.\n");
+-exit (1);
++emp_exit (1);
+ }
+ 
+ /*
+--- a/empire/util.c
++++ b/empire/util.c
+@@ -219,7 +219,7 @@
+ empend ()
+ {
+ close_disp ();
+-exit (0);
++emp_exit (0);
+ }
+ 
+ /*
+--- a/empire/extern.h
++++ b/empire/extern.h
+@@ -239,4 +239,8 @@
+ void exit();
+ void perror();
+ void srand();
++
++/* PicoCalc port: replaces exit() for a clean shutdown of the game loop on
++   the device (see main.c in the top-level project, not this directory) */
++void emp_exit (int status);
+ char *strcpy();

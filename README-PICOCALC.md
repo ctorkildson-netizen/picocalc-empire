@@ -25,6 +25,35 @@ targets (1.2), and it documents extra options (`-g` map geometry, `-t` torus
 wraparound) that don't exist in this codebase. Don't be surprised if a
 manual you find doesn't match what's running on the device.
 
+> **Alpha release.** Empire runs on real PicoCalc hardware, but it has had
+> one tester and a few hours of play. Expect bugs, especially in the late
+> game. Reports on the ClockworkPi forum thread are very welcome.
+
+## Installing
+
+You need a PicoCalc with a **Pico 2 / Pico 2 W (RP2350)** module -- there is
+no RP2040 build -- plus the current keyboard BIOS (v1.7 at the time of
+writing) and pelrun's [uf2loader](https://github.com/pelrun/uf2loader)
+boot menu.
+
+1. Download `picocalc-empire.uf2` from the
+   [latest release](https://github.com/ctorkildson-netizen/picocalc-empire/releases/latest).
+2. Copy it into the `pico2-apps` folder on the PicoCalc's SD card.
+3. Power on while holding **Up** (or F1/F5) to get the uf2loader menu, and
+   pick `picocalc-empire`.
+
+The last app you launched stays in flash and starts on every power-on, so
+hold Up whenever you want the menu back.
+
+Keep the SD card in: Empire saves `empsave.dat` there every 10 turns and on
+quit, and restores it automatically at startup.
+
+**Movement keys** are Empire's own: `Q W E / A D / Z X C` around `S`.
+The arrow keys are mapped to `h j k l`, which Empire does *not* use for
+movement -- in particular `J` (shift-j) drops you into edit mode, where the
+map can look blank while the cursor still moves. That is original 1988
+behaviour, not a PicoCalc bug.
+
 ## What's different on the PicoCalc
 
 **No command-line options.** There's no `argv` and no `getopt()` on the

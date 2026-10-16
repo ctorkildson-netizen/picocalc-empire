@@ -36,8 +36,8 @@ no RP2040 build -- plus the current keyboard BIOS (v1.7 at the time of
 writing) and pelrun's [uf2loader](https://github.com/pelrun/uf2loader)
 boot menu.
 
-1. Download `picocalc-empire.uf2` from the
-   [latest release](https://github.com/ctorkildson-netizen/picocalc-empire/releases/latest).
+1. Download [`bin/picocalc-empire.uf2`](https://github.com/ctorkildson-netizen/picocalc-empire/raw/main/bin/picocalc-empire.uf2)
+   from this repository.
 2. Copy it into the `pico2-apps` folder on the PicoCalc's SD card.
 3. Power on while holding **Up** (or F1/F5) to get the uf2loader menu, and
    pick `picocalc-empire`.

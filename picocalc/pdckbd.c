@@ -142,12 +142,29 @@ bool on_keyboard_timer(repeating_timer_t *rt)
     return true; // continue the timer
 }
 
+/* PicoCalc port: start polling the keyboard exactly once. Originally the
+   poll timer was only ever started from PDC_set_keyboard_binary(), which
+   PDCurses calls from raw()/noraw() -- fine for Blair's Rogue (it calls
+   raw()), but Empire only calls crmode()/cbreak(), so the keyboard was
+   never read at all. PDC_scr_open() now calls this at startup; the guard
+   keeps a later raw() from registering the same timer struct twice. */
+static bool key_timer_running = false;
+
+void PDC_picocalc_start_keyboard(void)
+{
+    if (key_timer_running)
+        return;
+    key_timer_running = true;
+
+    // poll every 100 ms for key events
+    add_repeating_timer_ms(100, on_keyboard_timer, NULL, &key_timer);
+}
+
 void PDC_set_keyboard_binary(bool on)
 {
     PDC_LOG(("PDC_set_keyboard_binary() - called\n"));
 
-    // poll every 100 ms for key events
-    add_repeating_timer_ms(100, on_keyboard_timer, NULL, &key_timer);
+    PDC_picocalc_start_keyboard();
 }
 
 bool PDC_check_key(void)

@@ -72,11 +72,27 @@ file(GLOB EMPIRE_SOURCES CONFIGURE_DEPENDS
 )
 
 # Empire's own source is 1988-vintage K&R C (implicit function declarations,
-# old-style function definitions). Modern GCC treats those as hard errors
-# by default. -std=gnu89 turns them back into warnings, but we only want
-# that relaxed for Empire's own files -- not for PDCurses, the Pico SDK,
-# or our own main.c, which should stay held to the normal C11 standard.
-set_source_files_properties(${EMPIRE_SOURCES} PROPERTIES COMPILE_OPTIONS "-std=gnu89")
+# old-style function definitions, and extern.h's globals declared without
+# 'extern' -- relying on the old "common symbol" linker behavior where the
+# same uninitialized global in multiple .c files was just merged, not an
+# error). Modern GCC defaults to -Werror on the first and -fno-common
+# (which forbids the second) since GCC 10/14. -std=gnu89 and -fcommon turn
+# both back into what 1988 code expects, scoped to Empire's own files only
+# -- not PDCurses, the Pico SDK, or our own main.c, which should stay held
+# to the normal C11 standard.
+set_source_files_properties(${EMPIRE_SOURCES} PROPERTIES COMPILE_OPTIONS "-std=gnu89;-fcommon")
+
+# Ninja tracks whether to recompile a .c file by looking at its own mtime
+# and the mtimes of the headers it #includes -- but the "delete and
+# recreate empire/ from modules/empire, then patch it" custom command
+# above happens at BUILD time, which Ninja's dependency graph doesn't
+# automatically know depends on. Without this, editing patches/empire.patch
+# and rebuilding can silently link a STALE binary: the patch step reruns,
+# but nothing recompiles, because the object files it already built still
+# look up to date. Tying every empire/*.c object file to the .patched
+# stamp file fixes that -- a fresh timestamp on .patched now forces a
+# rebuild of everything derived from it.
+set_source_files_properties(${EMPIRE_SOURCES} PROPERTIES OBJECT_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/empire/.patched)
 
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_LIST_DIR}/pdcurses/.patched
@@ -100,6 +116,9 @@ add_custom_target(patch_pdcurses ALL
 file(GLOB PDCURSES_SOURCES CONFIGURE_DEPENDS
     pdcurses/*.c
 )
+
+# Same staleness fix as EMPIRE_SOURCES above, for the pdcurses/ copy+patch step.
+set_source_files_properties(${PDCURSES_SOURCES} PROPERTIES OBJECT_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/pdcurses/.patched)
 
 add_executable(picocalc-empire
     ${PDCURSES_SOURCES}
